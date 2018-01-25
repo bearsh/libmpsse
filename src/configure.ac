@@ -31,38 +31,37 @@ fi
 
 if test $BUILD
 then
-	if ! test $SWIG
-	then
-		SWIG="$(which swig)"
-	fi
+	AM_PATH_PYTHON()
+	AC_ARG_VAR([PYTHON_INC], [Include flags for python, bypassing python-config])
+	AC_ARG_VAR([PYTHON_LIBS], [Library flags for python, bypassing python-config])
 
-	if ! test $SWIG
-	then
-		echo "error: could not locate swig"
-		exit 1
-	fi
+	AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
+	AS_IF([(test -z "$PYTHON_INC" || test -z "$PYTHON_LIBS") && test -z "$PYTHON_CONFIG"], [
+		AC_PATH_PROGS([PYTHON_CONFIG],
+			[python$PYTHON_VERSION-config python-config],
+			[no])
+		AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+	])
 
-	if ! test $PYDEV
-	then
-		PYDEV="$(echo 'from distutils.sysconfig import get_python_inc; print(get_python_inc())' | python)"
-	fi
+	AC_ARG_VAR([SWIG], [Path to swig])
+	AS_IF([test -z "$SWIG"], [
+		AC_PATH_PROGS([SWIG],
+			[swig],
+			[no])
+		AS_IF([test "$SWIG" = no], [AC_MSG_ERROR([cannot find swig.])])
+	])
 
-	AC_CHECK_HEADERS([$PYDEV/Python.h],[],[echo "error: missing python header files" && exit 1])
+	AS_IF([test -z "$PYTHON_INC"], [
+		AC_MSG_CHECKING([python include flags])
+		PYTHON_INC=`$PYTHON_CONFIG --includes`
+		AC_MSG_RESULT([$PYTHON_INC])
+	])
+	AS_IF([test -z "$PYTHON_LIBS"], [
+		AC_MSG_CHECKING([python lib flags])
+		PYTHON_LIBS=`$PYTHON_CONFIG --libs`
+		AC_MSG_RESULT([$PYTHON_LIBS])
+	])
 
-	if ! test $PYLIB
-	then
-		dnl This is a hack to get a valid python library path
-		echo "import sys" > pylib.py
-		echo "for path in sys.path: print(path)" >> pylib.py
-		PYLIB="$(python pylib.py | grep -e '-packages$' | head -1)"
-		rm -f pylib.py
-	fi
-
-	if ! test -d $PYLIB
-	then
-		echo "error: could not locate python library path"
-		exit 1
-	fi
 fi
 
 dnl OSX specific compiler flags
@@ -79,8 +78,8 @@ cp confdefs.h config.h
 
 AC_SUBST(BUILD, $BUILD)
 AC_SUBST(SWIG, $SWIG)
-AC_SUBST(PYDEV, $PYDEV)
-AC_SUBST(PYLIB, $PYLIB)
+AC_SUBST(PYDEV, $PYTHON_INC)
+AC_SUBST(PYLIB, $PYTHON_LIBS)
 AC_SUBST(SONAME, $SONAME)
 AC_SUBST(FRAMEWORK, $FRAMEWORK)
 AC_SUBST(LIBFTDI1, $LIBFTDI1)

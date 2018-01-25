@@ -12,7 +12,12 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 LIBDIR=@libdir@
 INCDIR=@includedir@
-INC=-I$(PYDEV)
+INC=$(PYDEV)
+LIB=$(PYLIB)
+pythondir=@pythondir@
+pkgpythondir=@pkgpythondir@
+pyexecdir=@pyexecdir@
+pkgpyexecdir=@pkgpyexecdir@
 TARGET=mpsse
 
 all: $(TARGET) py$(BUILD)-build
@@ -40,18 +45,19 @@ pyswig-build:
 	$(SWIG) -python $(TARGET).i
 	$(CC) $(CFLAGS) -c  -DLIBFTDI1=$(LIBFTDI1) $(TARGET)_wrap.c  $(INC)
 	$(CC) $(CFLAGS) -shared $(FRAMEWORK) $(TARGET)_wrap.o pyswig_mpsse.o pyswig_support.o \
-		-o _pylib$(TARGET).so $(LDFLAGS) $(INC)
+		-o _pylib$(TARGET).so $(LDFLAGS) $(LIB)
 
 pyswig-install:
-	install -d -m755 $(DESTDIR)/$(PYLIB)
-	install -m644 pylib$(TARGET).py  $(DESTDIR)/$(PYLIB)/pylib$(TARGET).py
-	install -m644 _pylib$(TARGET).so $(DESTDIR)/$(PYLIB)/_pylib$(TARGET).so
-	install -m644 $(TARGET).py       $(DESTDIR)/$(PYLIB)/$(TARGET).py
+	install -d -m755 $(DESTDIR)/$(pythondir)
+	install -d -m755 $(DESTDIR)/$(pyexecdir)
+	install -m644 pylib$(TARGET).py  $(DESTDIR)/$(pythondir)/pylib$(TARGET).py
+	install -m644 _pylib$(TARGET).so $(DESTDIR)/$(pyexecdir)/_pylib$(TARGET).so
+	install -m644 $(TARGET).py       $(DESTDIR)/$(pythondir)/$(TARGET).py
 
 pyswig-uninstall:
-	rm -f $(DESTDIR)/$(PYLIB)/$(TARGET).* \
-		$(DESTDIR)/$(PYLIB)/pylib$(TARGET).* \
-		$(DESTDIR)/$(PYLIB)/_pylib$(TARGET).*
+	rm -f $(DESTDIR)/$(pythondir)/$(TARGET).* \
+		$(DESTDIR)/$(pythondir)/pylib$(TARGET).* \
+		$(DESTDIR)/$(pyexecdir)/_pylib$(TARGET).*
 
 # Dummy rules for when $BUILD == "" (if --disable-python was passed to ./configure)
 py-build:
