@@ -10,15 +10,10 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#if LIBFTDI1 == 1
-#include <libftdi1/ftdi.h>
-#else
-#include <ftdi.h>
-#endif
-
-#include "mpsse.h"
+#include "mpsse_private.h"
 #include "support.h"
 #include "config.h"
+
 
 /* List of known FT2232-based devices */
 struct vid_pid supported_devices[] = { 

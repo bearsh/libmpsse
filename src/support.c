@@ -8,13 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if LIBFTDI1 == 1
-#include <libftdi1/ftdi.h>
-#else
-#include <ftdi.h>
-#endif
-
-#include "mpsse.h"
+#include "mpsse_private.h"
 #include "support.h"
 
 #define RAW_READ_RETRY 10

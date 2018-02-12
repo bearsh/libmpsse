@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-#if LIBFTDI1 == 1
-#include <libftdi1/ftdi.h>
-#else
-#include <ftdi.h>
-#endif
 
 #define MPSSE_OK		0
 #define MPSSE_FAIL		-1
@@ -42,11 +37,11 @@
 /* FTDI interfaces */
 enum interface
 {
-	IFACE_ANY	= INTERFACE_ANY,
-	IFACE_A 	= INTERFACE_A,
-	IFACE_B		= INTERFACE_B,
-	IFACE_C		= INTERFACE_C,
-	IFACE_D		= INTERFACE_D
+	IFACE_ANY	= 0,
+	IFACE_A 	= 1,
+	IFACE_B		= 2,
+	IFACE_C		= 3,
+	IFACE_D		= 4
 };
 
 /* Common clock rates */
@@ -145,32 +140,7 @@ struct vid_pid
 	char *description;
 };
 
-struct mpsse_context
-{
-	char *description;
-	struct ftdi_context ftdi;
-	enum modes mode;
-	enum low_bits_status status;
-	int flush_after_read;
-	int vid;
-	int pid;
-	int clock;
-	int xsize;
-	int open;
-	int endianess;
-	uint8_t tris;
-	uint8_t pstart;
-	uint8_t pstop;
-	uint8_t pidle;
-	uint8_t gpioh;
-	uint8_t trish;
-	uint8_t bitbang;
-	uint8_t tx;
-	uint8_t rx;
-	uint8_t txrx;
-	uint8_t tack;
-	uint8_t rack;
-};
+struct mpsse_context;
 
 struct mpsse_context *MPSSE(enum modes mode, int freq, int endianess);
 struct mpsse_context *Open(int vid, int pid, enum modes mode, int freq, int endianess, int interface, const char *description, const char *serial);
@@ -205,20 +175,10 @@ int PinState(struct mpsse_context *mpsse, int pin, int state);
 int Tristate(struct mpsse_context *mpsse);
 char Version(void);
 
-#ifdef SWIGPYTHON
-typedef struct swig_string_data
-{
-        int size;
-        char *data;
-} swig_string_data;
+#ifndef SWIGPYTHON
+char* Read(struct mpsse_context *mpsse, int size);
+char* Transfer(struct mpsse_context *mpsse, char *data, int size);
 
-swig_string_data Read(struct mpsse_context *mpsse, int size);
-swig_string_data Transfer(struct mpsse_context *mpsse, char *data, int size);
-#else
-char *Read(struct mpsse_context *mpsse, int size);
-char *Transfer(struct mpsse_context *mpsse, char *data, int size);
-
-unsigned char fast_rw_buf[SPI_RW_SIZE + CMD_SIZE];
 int FastWrite(struct mpsse_context *mpsse, char *data, int size);
 int FastRead(struct mpsse_context *mpsse, char *data, int size);
 int FastTransfer(struct mpsse_context *mpsse, char *wdata, char *rdata, int size);
